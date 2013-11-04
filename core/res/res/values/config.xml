@@ -2326,4 +2326,7 @@
     <!-- The BT name of the keyboard packaged with the device. If this is defined, SystemUI will
          automatically try to pair with it when the device exits tablet mode. -->
     <string translatable="false" name="config_packagedKeyboardName"></string>
+
+    <!-- Boolean to enable stk functionality on Samsung phones -->
+    <bool name="config_samsung_stk">false</bool>
 </resources>
