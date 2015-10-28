@@ -59,7 +59,7 @@ interface IBluetooth
     boolean cancelBondProcess(in BluetoothDevice device);
     boolean removeBond(in BluetoothDevice device);
     int getBondState(in BluetoothDevice device);
-    boolean isConnected(in BluetoothDevice device);
+    int getConnectionState(in BluetoothDevice device);
 
     String getRemoteName(in BluetoothDevice device);
     int getRemoteType(in BluetoothDevice device);
@@ -68,7 +68,7 @@ interface IBluetooth
     int getRemoteClass(in BluetoothDevice device);
     ParcelUuid[] getRemoteUuids(in BluetoothDevice device);
     boolean fetchRemoteUuids(in BluetoothDevice device);
-    boolean fetchRemoteMasInstances(in BluetoothDevice device);
+    boolean sdpSearch(in BluetoothDevice device, in ParcelUuid uuid);
 
     boolean setPin(in BluetoothDevice device, boolean accept, int len, in byte[] pinCode);
     boolean setPasskey(in BluetoothDevice device, boolean accept, int len, in byte[]
@@ -79,6 +79,8 @@ interface IBluetooth
     boolean setPhonebookAccessPermission(in BluetoothDevice device, int value);
     int getMessageAccessPermission(in BluetoothDevice device);
     boolean setMessageAccessPermission(in BluetoothDevice device, int value);
+    int getSimAccessPermission(in BluetoothDevice device);
+    boolean setSimAccessPermission(in BluetoothDevice device, int value);
 
     void sendConnectionStateChange(in BluetoothDevice device, int profile, int state, int prevState);
 
@@ -90,6 +92,7 @@ interface IBluetooth
     ParcelFileDescriptor createSocketChannel(int type, in String serviceName, in ParcelUuid uuid, int port, int flag);
 
     boolean configHciSnoopLog(boolean enable);
+    boolean factoryReset();
 
     boolean isMultiAdvertisementSupported();
     boolean isPeripheralModeSupported();
@@ -99,6 +102,8 @@ interface IBluetooth
     void getActivityEnergyInfoFromController();
     BluetoothActivityEnergyInfo reportActivityInfo();
 
-    // for dumpsys support
-    String dump();
+    // For dumpsys support
+    void dump(in ParcelFileDescriptor fd);
+    void onLeServiceUp();
+    void onBrEdrDown();
 }

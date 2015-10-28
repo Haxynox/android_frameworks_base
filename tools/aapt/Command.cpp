@@ -215,14 +215,15 @@ int doList(Bundle* bundle)
             goto bail;
         }
 
+#ifdef HAVE_ANDROID_OS
+        static const bool kHaveAndroidOs = true;
+#else
+        static const bool kHaveAndroidOs = false;
+#endif
         const ResTable& res = assets.getResources(false);
-        if (&res == NULL) {
-            printf("\nNo resource table found.\n");
-        } else {
-#ifndef HAVE_ANDROID_OS
+        if (!kHaveAndroidOs) {
             printf("\nResource table:\n");
             res.print(false);
-#endif
         }
 
         Asset* manifestAsset = assets.openNonAsset("AndroidManifest.xml",
@@ -620,10 +621,7 @@ int doDump(Bundle* bundle)
     assets.setConfiguration(config);
 
     const ResTable& res = assets.getResources(false);
-    if (&res == NULL) {
-        fprintf(stderr, "ERROR: dump failed because no resource table was found\n");
-        return 1;
-    } else if (res.getError() != NO_ERROR) {
+    if (res.getError() != NO_ERROR) {
         fprintf(stderr, "ERROR: dump failed because the resource table is invalid/corrupt.\n");
         return 1;
     }
@@ -2533,22 +2531,17 @@ int doSingleCrunch(Bundle* bundle)
 
 int runInDaemonMode(Bundle* bundle) {
     std::cout << "Ready" << std::endl;
-    for (std::string line; std::getline(std::cin, line);) {
-        if (line == "quit") {
+    for (std::string cmd; std::getline(std::cin, cmd);) {
+        if (cmd == "quit") {
             return NO_ERROR;
-        }
-        std::stringstream ss;
-        ss << line;
-        std::string s;
-
-        std::string command, parameterOne, parameterTwo;
-        std::getline(ss, command, ' ');
-        std::getline(ss, parameterOne, ' ');
-        std::getline(ss, parameterTwo, ' ');
-        if (command[0] == 's') {
-            bundle->setSingleCrunchInputFile(parameterOne.c_str());
-            bundle->setSingleCrunchOutputFile(parameterTwo.c_str());
-            std::cout << "Crunching " << parameterOne << std::endl;
+        } else if (cmd == "s") {
+            // Two argument crunch
+            std::string inputFile, outputFile;
+            std::getline(std::cin, inputFile);
+            std::getline(std::cin, outputFile);
+            bundle->setSingleCrunchInputFile(inputFile.c_str());
+            bundle->setSingleCrunchOutputFile(outputFile.c_str());
+            std::cout << "Crunching " << inputFile << std::endl;
             if (doSingleCrunch(bundle) != NO_ERROR) {
                 std::cout << "Error" << std::endl;
             }

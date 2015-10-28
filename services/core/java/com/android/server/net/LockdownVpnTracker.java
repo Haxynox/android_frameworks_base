@@ -17,6 +17,9 @@
 package com.android.server.net;
 
 import static android.Manifest.permission.CONNECTIVITY_INTERNAL;
+import static android.net.NetworkPolicyManager.FIREWALL_CHAIN_NONE;
+import static android.net.NetworkPolicyManager.FIREWALL_RULE_ALLOW;
+import static android.net.NetworkPolicyManager.FIREWALL_RULE_DEFAULT;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -31,6 +34,7 @@ import android.net.LinkAddress;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.NetworkInfo.State;
+import android.net.NetworkPolicyManager;
 import android.os.INetworkManagementService;
 import android.os.RemoteException;
 import android.security.Credentials;
@@ -140,7 +144,7 @@ public class LockdownVpnTracker {
         if (egressDisconnected || egressChanged) {
             clearSourceRulesLocked();
             mAcceptedEgressIface = null;
-            mVpn.stopLegacyVpn();
+            mVpn.stopLegacyVpnPrivileged();
         }
         if (egressDisconnected) {
             hideNotification();
@@ -163,7 +167,9 @@ public class LockdownVpnTracker {
 
                 mAcceptedEgressIface = egressProp.getInterfaceName();
                 try {
-                    mVpn.startLegacyVpn(mProfile, KeyStore.getInstance(), egressProp);
+                    // Use the privileged method because Lockdown VPN is initiated by the system, so
+                    // no additional permission checks are necessary.
+                    mVpn.startLegacyVpnPrivileged(mProfile, KeyStore.getInstance(), egressProp);
                 } catch (IllegalStateException e) {
                     mAcceptedEgressIface = null;
                     Slog.e(TAG, "Failed to start VPN", e);
@@ -196,8 +202,8 @@ public class LockdownVpnTracker {
                     setFirewallEgressSourceRule(addr, true);
                 }
 
-                mNetService.setFirewallUidRule(ROOT_UID, true);
-                mNetService.setFirewallUidRule(Os.getuid(), true);
+                mNetService.setFirewallUidRule(FIREWALL_CHAIN_NONE, ROOT_UID, FIREWALL_RULE_ALLOW);
+                mNetService.setFirewallUidRule(FIREWALL_CHAIN_NONE, Os.getuid(), FIREWALL_RULE_ALLOW);
 
                 mErrorCount = 0;
                 mAcceptedIface = iface;
@@ -250,7 +256,7 @@ public class LockdownVpnTracker {
         mAcceptedEgressIface = null;
         mErrorCount = 0;
 
-        mVpn.stopLegacyVpn();
+        mVpn.stopLegacyVpnPrivileged();
         try {
             mNetService.setFirewallEgressDestRule(mProfile.server, 500, false);
             mNetService.setFirewallEgressDestRule(mProfile.server, 4500, false);
@@ -286,8 +292,8 @@ public class LockdownVpnTracker {
                     setFirewallEgressSourceRule(addr, false);
                 }
 
-                mNetService.setFirewallUidRule(ROOT_UID, false);
-                mNetService.setFirewallUidRule(Os.getuid(), false);
+                mNetService.setFirewallUidRule(FIREWALL_CHAIN_NONE, ROOT_UID, FIREWALL_RULE_DEFAULT);
+                mNetService.setFirewallUidRule(FIREWALL_CHAIN_NONE,Os.getuid(), FIREWALL_RULE_DEFAULT);
 
                 mAcceptedSourceAddr = null;
             }
@@ -339,7 +345,7 @@ public class LockdownVpnTracker {
                 .setOngoing(true)
                 .addAction(R.drawable.ic_menu_refresh, mContext.getString(R.string.reset),
                         mResetIntent)
-                .setColor(mContext.getResources().getColor(
+                .setColor(mContext.getColor(
                         com.android.internal.R.color.system_notification_accent_color));
 
         NotificationManager.from(mContext).notify(TAG, 0, builder.build());

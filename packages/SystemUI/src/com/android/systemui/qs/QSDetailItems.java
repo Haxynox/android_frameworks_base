@@ -190,10 +190,9 @@ public class QSDetailItems extends FrameLayout {
         title.setText(item.line1);
         final TextView summary = (TextView) view.findViewById(android.R.id.summary);
         final boolean twoLines = !TextUtils.isEmpty(item.line2);
+        title.setMaxLines(twoLines ? 1 : 2);
         summary.setVisibility(twoLines ? VISIBLE : GONE);
         summary.setText(twoLines ? item.line2 : null);
-        view.setMinimumHeight(mContext.getResources() .getDimensionPixelSize(
-                twoLines ? R.dimen.qs_detail_item_height_twoline : R.dimen.qs_detail_item_height));
         view.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -238,8 +237,8 @@ public class QSDetailItems extends FrameLayout {
     public static class Item {
         public int icon;
         public Drawable overlay;
-        public String line1;
-        public String line2;
+        public CharSequence line1;
+        public CharSequence line2;
         public Object tag;
         public boolean canDisconnect;
     }

@@ -255,7 +255,10 @@ public final class ArrayMap<K, V> implements Map<K, V> {
     }
 
     private ArrayMap(boolean immutable) {
-        mHashes = EmptyArray.INT;
+        // If this is immutable, use the sentinal EMPTY_IMMUTABLE_INTS
+        // instance instead of the usual EmptyArray.INT. The reference
+        // is checked later to see if the array is allowed to grow.
+        mHashes = immutable ? EMPTY_IMMUTABLE_INTS : EmptyArray.INT;
         mArray = EmptyArray.OBJECT;
         mSize = 0;
     }
@@ -263,7 +266,7 @@ public final class ArrayMap<K, V> implements Map<K, V> {
     /**
      * Create a new ArrayMap with the mappings from the given ArrayMap.
      */
-    public ArrayMap(ArrayMap map) {
+    public ArrayMap(ArrayMap<K, V> map) {
         this();
         if (map != null) {
             putAll(map);
@@ -840,7 +843,8 @@ public final class ArrayMap<K, V> implements Map<K, V> {
      * in the array map.
      *
      * <p><b>Note:</b> this is a very inefficient way to access the array contents, it
-     * requires generating a number of temporary objects.</p>
+     * requires generating a number of temporary objects and allocates additional state
+     * information associated with the container that will remain for the life of the container.</p>
      *
      * <p><b>Note:</b></p> the semantics of this
      * Set are subtly different than that of a {@link java.util.HashMap}: most important,
@@ -858,7 +862,8 @@ public final class ArrayMap<K, V> implements Map<K, V> {
      * in the array map.
      *
      * <p><b>Note:</b> this is a fairly inefficient way to access the array contents, it
-     * requires generating a number of temporary objects.</p>
+     * requires generating a number of temporary objects and allocates additional state
+     * information associated with the container that will remain for the life of the container.</p>
      */
     @Override
     public Set<K> keySet() {
@@ -870,7 +875,8 @@ public final class ArrayMap<K, V> implements Map<K, V> {
      * in the array map.
      *
      * <p><b>Note:</b> this is a fairly inefficient way to access the array contents, it
-     * requires generating a number of temporary objects.</p>
+     * requires generating a number of temporary objects and allocates additional state
+     * information associated with the container that will remain for the life of the container.</p>
      */
     @Override
     public Collection<V> values() {

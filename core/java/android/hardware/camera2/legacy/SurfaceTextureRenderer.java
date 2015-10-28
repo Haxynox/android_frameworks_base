@@ -49,7 +49,7 @@ import java.util.List;
  */
 public class SurfaceTextureRenderer {
     private static final String TAG = SurfaceTextureRenderer.class.getSimpleName();
-    private static final boolean DEBUG = Log.isLoggable(LegacyCameraDevice.DEBUG_PROP, Log.DEBUG);
+    private static final boolean DEBUG = false;
     private static final int EGL_RECORDABLE_ANDROID = 0x3142; // from EGL/eglext.h
     private static final int GL_MATRIX_SIZE = 16;
     private static final int VERTEX_POS_SIZE = 3;
@@ -269,21 +269,23 @@ public class SurfaceTextureRenderer {
             throw new IllegalStateException("Illegal intermediate texture with dimension of 0");
         }
 
-        // Letterbox or pillerbox output dimensions into intermediate dimensions.
+        // Letterbox or pillar-box output dimensions into intermediate dimensions.
         RectF intermediate = new RectF(/*left*/0, /*top*/0, /*right*/texWidth, /*bottom*/texHeight);
         RectF output = new RectF(/*left*/0, /*top*/0, /*right*/width, /*bottom*/height);
         android.graphics.Matrix boxingXform = new android.graphics.Matrix();
         boxingXform.setRectToRect(output, intermediate, android.graphics.Matrix.ScaleToFit.CENTER);
         boxingXform.mapRect(output);
 
-        // Find scaling factor from pillerboxed/letterboxed output dimensions to intermediate
+        // Find scaling factor from pillar-boxed/letter-boxed output dimensions to intermediate
         // buffer dimensions.
         float scaleX = intermediate.width() / output.width();
         float scaleY = intermediate.height() / output.height();
 
-        // Scale opposite dimension in clip coordinates so output is letterboxed/pillerboxed into
-        // the intermediate dimensions (rather than vice-versa).
-        Matrix.scaleM(mMVPMatrix, /*offset*/0, /*x*/scaleY, /*y*/scaleX, /*z*/1);
+        // Intermediate texture is implicitly scaled to 'fill' the output dimensions in clip space
+        // coordinates in the shader.  To avoid stretching, we need to scale the larger dimension
+        // of the intermediate buffer so that the output buffer is actually letter-boxed
+        // or pillar-boxed into the intermediate buffer after clipping.
+        Matrix.scaleM(mMVPMatrix, /*offset*/0, /*x*/scaleX, /*y*/scaleY, /*z*/1);
 
         if (DEBUG) {
             Log.d(TAG, "Scaling factors (S_x = " + scaleX + ",S_y = " + scaleY + ") used for " +
@@ -628,8 +630,6 @@ public class SurfaceTextureRenderer {
                 holder.width = surfaceSize.getWidth();
                 holder.height = surfaceSize.getHeight();
                 if (LegacyCameraDevice.needsConversion(s)) {
-                    // Always override to YV12 output for YUV surface formats.
-                    LegacyCameraDevice.setSurfaceFormat(s, ImageFormat.YV12);
                     mConversionSurfaces.add(holder);
                 } else {
                     mSurfaces.add(holder);

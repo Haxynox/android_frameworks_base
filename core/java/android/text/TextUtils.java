@@ -16,6 +16,7 @@
 
 package android.text;
 
+import android.annotation.Nullable;
 import android.content.res.Resources;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -63,9 +64,12 @@ import java.util.regex.Pattern;
 
 public class TextUtils {
     private static final String TAG = "TextUtils";
-    private static final String ELLIPSIS = new String(Layout.ELLIPSIS_NORMAL);
-    private static final String ELLIPSIS_TWO_DOTS = new String(Layout.ELLIPSIS_TWO_DOTS);
 
+    /* package */ static final char[] ELLIPSIS_NORMAL = { '\u2026' }; // this is "..."
+    private static final String ELLIPSIS_STRING = new String(ELLIPSIS_NORMAL);
+
+    /* package */ static final char[] ELLIPSIS_TWO_DOTS = { '\u2025' }; // this is ".."
+    private static final String ELLIPSIS_TWO_DOTS_STRING = new String(ELLIPSIS_TWO_DOTS);
 
     private TextUtils() { /* cannot be instantiated */ }
 
@@ -454,11 +458,16 @@ public class TextUtils {
      * @param str the string to be examined
      * @return true if str is null or zero length
      */
-    public static boolean isEmpty(CharSequence str) {
+    public static boolean isEmpty(@Nullable CharSequence str) {
         if (str == null || str.length() == 0)
             return true;
         else
             return false;
+    }
+
+    /** {@hide} */
+    public static String nullIfEmpty(@Nullable String str) {
+        return isEmpty(str) ? null : str;
     }
 
     /**
@@ -618,8 +627,7 @@ public class TextUtils {
      * Flatten a CharSequence and whatever styles can be copied across processes
      * into the parcel.
      */
-    public static void writeToParcel(CharSequence cs, Parcel p,
-            int parcelableFlags) {
+    public static void writeToParcel(CharSequence cs, Parcel p, int parcelableFlags) {
         if (cs instanceof Spanned) {
             p.writeInt(0);
             p.writeString(cs.toString());
@@ -641,15 +649,15 @@ public class TextUtils {
                 }
 
                 if (prop instanceof ParcelableSpan) {
-                    ParcelableSpan ps = (ParcelableSpan)prop;
-                    int spanTypeId = ps.getSpanTypeId();
+                    final ParcelableSpan ps = (ParcelableSpan) prop;
+                    final int spanTypeId = ps.getSpanTypeIdInternal();
                     if (spanTypeId < FIRST_SPAN || spanTypeId > LAST_SPAN) {
-                        Log.e(TAG, "external class \"" + ps.getClass().getSimpleName()
+                        Log.e(TAG, "External class \"" + ps.getClass().getSimpleName()
                                 + "\" is attempting to use the frameworks-only ParcelableSpan"
                                 + " interface");
                     } else {
                         p.writeInt(spanTypeId);
-                        ps.writeToParcel(p, parcelableFlags);
+                        ps.writeToParcelInternal(p, parcelableFlags);
                         writeWhere(p, sp, o);
                     }
                 }
@@ -1085,7 +1093,7 @@ public class TextUtils {
                                          EllipsizeCallback callback) {
         return ellipsize(text, paint, avail, where, preserveLength, callback,
                 TextDirectionHeuristics.FIRSTSTRONG_LTR,
-                (where == TruncateAt.END_SMALL) ? ELLIPSIS_TWO_DOTS : ELLIPSIS);
+                (where == TruncateAt.END_SMALL) ? ELLIPSIS_TWO_DOTS_STRING : ELLIPSIS_STRING);
     }
 
     /**
@@ -1255,7 +1263,7 @@ public class TextUtils {
                     }
 
                     // XXX this is probably ok, but need to look at it more
-                    tempMt.setPara(format, 0, format.length(), textDir);
+                    tempMt.setPara(format, 0, format.length(), textDir, null);
                     float moreWid = tempMt.addStyleRun(p, tempMt.mLen, null);
 
                     if (w + moreWid <= avail) {
@@ -1277,7 +1285,7 @@ public class TextUtils {
     private static float setPara(MeasuredText mt, TextPaint paint,
             CharSequence text, int start, int end, TextDirectionHeuristic textDir) {
 
-        mt.setPara(text, start, end, textDir);
+        mt.setPara(text, start, end, textDir, null);
 
         float width;
         Spanned sp = text instanceof Spanned ? (Spanned) text : null;
@@ -1785,6 +1793,15 @@ public class TextUtils {
             default:
                 return View.LAYOUT_DIRECTION_LTR;
         }
+    }
+
+    /**
+     * Return localized string representing the given number of selected items.
+     *
+     * @hide
+     */
+    public static CharSequence formatSelectedCount(int count) {
+        return Resources.getSystem().getQuantityString(R.plurals.selected_count, count, count);
     }
 
     private static Object sLock = new Object();
