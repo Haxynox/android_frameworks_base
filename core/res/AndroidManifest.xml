@@ -1461,7 +1461,7 @@
     <permission android:name="android.permission.SYSTEM_ALERT_WINDOW"
         android:label="@string/permlab_systemAlertWindow"
         android:description="@string/permdesc_systemAlertWindow"
-        android:protectionLevel="signature|preinstalled|appop|pre23" />
+        android:protectionLevel="signature|preinstalled|appop|pre23|development" />
 
     <!-- ================================== -->
     <!-- Permissions affecting the system wallpaper -->
@@ -2112,7 +2112,7 @@
     <!-- Allows an application to grant specific permissions.
          @hide -->
     <permission android:name="android.permission.GRANT_RUNTIME_PERMISSIONS"
-        android:protectionLevel="signature|installer" />
+        android:protectionLevel="signature|installer|verifier" />
 
     <!-- Allows an app that has this permission and the permissions to install packages
          to request certain runtime permissions to be granted at installation.
