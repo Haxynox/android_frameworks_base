@@ -2326,4 +2326,11 @@
     <!-- The BT name of the keyboard packaged with the device. If this is defined, SystemUI will
          automatically try to pair with it when the device exits tablet mode. -->
     <string translatable="false" name="config_packagedKeyboardName"></string>
+
+    <!-- Older sensors are not setting event.timestamp correctly. Setting to
+         true will use SystemClock.elapsedRealtimeNanos() to set timestamp. -->
+    <bool name="config_useSystemClockforRotationSensor">false</bool>
+
+    <!-- Boolean to enable stk functionality on Samsung phones -->
+    <bool name="config_samsung_stk">false</bool>
 </resources>
