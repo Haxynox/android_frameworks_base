@@ -741,7 +741,7 @@ public class IntentFilter implements Parcelable {
             }
             return MATCH_CATEGORY_HOST;
         }
-    };
+    }
 
     /**
      * Add a new Intent data "scheme specific part" to match against.  The filter must
