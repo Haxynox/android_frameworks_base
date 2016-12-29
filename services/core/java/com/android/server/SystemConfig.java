@@ -16,6 +16,7 @@
 
 package com.android.server;
 
+import android.content.ComponentName;
 import android.app.ActivityManager;
 import android.content.pm.FeatureInfo;
 import android.os.*;
@@ -87,7 +88,9 @@ public class SystemConfig {
 
     // These are the app package names that should not allow IME switching.
     final ArraySet<String> mFixedImeApps = new ArraySet<>();
-
+    
+    final ArraySet<ComponentName> mBackupTransportWhitelist = new ArraySet<>();
+    
     public static SystemConfig getInstance() {
         synchronized (SystemConfig.class) {
             if (sInstance == null) {
@@ -123,8 +126,10 @@ public class SystemConfig {
 
     public ArraySet<String> getFixedImeApps() {
         return mFixedImeApps;
-    }
+     }
 
+    public ArraySet<ComponentName> getBackupTransportWhitelist() {
+        return mBackupTransportWhitelist;
     SystemConfig() {
         // Read configuration from system
         readPermissions(Environment.buildPath(
@@ -340,6 +345,23 @@ public class SystemConfig {
                     }
                     XmlUtils.skipCurrentTag(parser);
                     continue;
+                    } else if ("backup-transport-whitelisted-service".equals(name)) {
+                    String serviceName = parser.getAttributeValue(null, "service");
+                    if (serviceName == null) {
+                        Slog.w(TAG, "<backup-transport-whitelisted-service> without service in "
+                                + permFile + " at " + parser.getPositionDescription());
+                    } else {
+                        ComponentName cn = ComponentName.unflattenFromString(serviceName);
+                        if (cn == null) {
+                            Slog.w(TAG,
+                                    "<backup-transport-whitelisted-service> with invalid service name "
+                                    + serviceName + " in "+ permFile
+                                    + " at " + parser.getPositionDescription());
+                        } else {
+                            mBackupTransportWhitelist.add(cn);
+                        }
+                    }
+                    XmlUtils.skipCurrentTag(parser);
 
                 } else {
                     XmlUtils.skipCurrentTag(parser);
