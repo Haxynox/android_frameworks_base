@@ -85,7 +85,10 @@ public class NetworkRequest implements Parcelable {
          * Build {@link NetworkRequest} give the current set of capabilities.
          */
         public NetworkRequest build() {
-            return new NetworkRequest(mNetworkCapabilities, ConnectivityManager.TYPE_NONE,
+            //return new NetworkRequest(mNetworkCapabilities, ConnectivityManager.TYPE_NONE,
+            final NetworkCapabilities nc = new NetworkCapabilities(mNetworkCapabilities);
+            nc.maybeMarkCapabilitiesRestricted();
+            return new NetworkRequest(nc, ConnectivityManager.TYPE_NONE,
                     ConnectivityManager.REQUEST_ID_UNSET);
         }
 
