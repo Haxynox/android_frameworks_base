@@ -17,6 +17,7 @@
 package com.android.systemui.recents;
 
 import android.app.Activity;
+import android.provider.Settings;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.app.ITaskStackListener;
@@ -239,6 +240,9 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
     /** Shows the Recents. */
     @ProxyFromPrimaryToCurrentUser
     public void onShowRecents(boolean triggeredFromAltTab) {
+        if (!isDeviceProvisioned()) {
+            return;
+        }
         if (mSystemServicesProxy.isForegroundUserOwner()) {
             showRecents(triggeredFromAltTab);
         } else {
@@ -261,6 +265,9 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
     /** Hides the Recents. */
     @ProxyFromPrimaryToCurrentUser
     public void onHideRecents(boolean triggeredFromAltTab, boolean triggeredFromHomeKey) {
+        if (!isDeviceProvisioned()) {
+            return;
+        }
         if (mSystemServicesProxy.isForegroundUserOwner()) {
             hideRecents(triggeredFromAltTab, triggeredFromHomeKey);
         } else {
@@ -287,6 +294,9 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
     /** Toggles the Recents activity. */
     @ProxyFromPrimaryToCurrentUser
     public void onToggleRecents() {
+        if (!isDeviceProvisioned()) {
+            return;
+        }
         if (mSystemServicesProxy.isForegroundUserOwner()) {
             toggleRecents();
         } else {
@@ -308,6 +318,9 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
     /** Preloads info for the Recents activity. */
     @ProxyFromPrimaryToCurrentUser
     public void onPreloadRecents() {
+         if (!isDeviceProvisioned()) {
+            return;
+        }
         if (mSystemServicesProxy.isForegroundUserOwner()) {
             preloadRecents();
         } else {
@@ -400,10 +413,16 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
     }
 
     public void onShowNextAffiliatedTask() {
+        if (!isDeviceProvisioned()) {
+            return;
+        }
         showRelativeAffiliatedTask(true);
     }
 
     public void onShowPrevAffiliatedTask() {
+        if (!isDeviceProvisioned()) {
+            return;
+        }
         showRelativeAffiliatedTask(false);
     }
 
@@ -746,7 +765,10 @@ public class AlternateRecentsComponent implements ActivityOptions.OnAnimationSta
         sInstanceLoadPlan = null;
         return plan;
     }
-
+   private boolean isDeviceProvisioned() {
+        return Settings.Global.getInt(mContext.getContentResolver(),
+                Settings.Global.DEVICE_PROVISIONED, 0) != 0;
+    }
     /**** OnAnimationStartedListener Implementation ****/
 
     @Override
