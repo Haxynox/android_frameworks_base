@@ -528,7 +528,7 @@ bool AndroidRuntime::parseCompilerRuntimeOption(const char* property,
  *
  * Returns 0 on success.
  */
-int AndroidRuntime::startVm(JavaVM** pJavaVM, JNIEnv** pEnv)
+int AndroidRuntime::startVm(JavaVM** pJavaVM, JNIEnv** pEnv, bool zygote)
 {
     int result = -1;
     JavaVMInitArgs initArgs;
@@ -735,7 +735,9 @@ int AndroidRuntime::startVm(JavaVM** pJavaVM, JNIEnv** pEnv)
 
     /* enable debugging; set suspend=y to pause during VM init */
     /* use android ADB transport */
+    if (zygote) {
     addOption("-agentlib:jdwp=transport=dt_android_adb,suspend=n,server=y");
+    }
 
     parseRuntimeOption("dalvik.vm.lockprof.threshold",
                        lockProfThresholdBuf,
