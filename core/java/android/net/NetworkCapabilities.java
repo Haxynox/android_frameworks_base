@@ -269,8 +269,12 @@ public final class NetworkCapabilities implements Parcelable {
         return (nc.mNetworkCapabilities == this.mNetworkCapabilities);
     }
     public void maybeMarkCapabilitiesRestricted() {
-    if ((mNetworkCapabilities & ~(DEFAULT_CAPABILITIES | RESTRICTED_CAPABILITIES)) == 0)
+    if ((mNetworkCapabilities & ~(DEFAULT_CAPABILITIES | RESTRICTED_CAPABILITIES)) == 0 &&
+        // Must have at least some restricted capabilities, otherwise a request for an
+        // internet-less network will get marked restricted.
+        (mNetworkCapabilities & RESTRICTED_CAPABILITIES) != 0) {
         removeCapability(NET_CAPABILITY_NOT_RESTRICTED);
+    }
     }
     /**
      * Representing the transport type.  Apps should generally not care about transport.  A
