@@ -71,6 +71,7 @@ import android.os.RemoteException;
 import android.os.SELinux;
 import android.os.ServiceManager;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.os.UserHandle;
 import android.os.WorkSource;
 import android.os.Environment.UserEnvironment;
@@ -84,6 +85,7 @@ import android.util.AtomicFile;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.Slog;
+import android.util.ArraySet;
 import android.util.SparseArray;
 import android.util.StringBuilderPrinter;
 
@@ -98,6 +100,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import com.android.server.SystemConfig;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -310,6 +313,7 @@ public class BackupManagerService {
     volatile boolean mClearingData;
 
     // Transport bookkeeping
+    final ArraySet<ComponentName> mTransportWhitelist;
     final Intent mTransportServiceIntent = new Intent(SERVICE_ACTION_TRANSPORT_HOST);
     final ArrayMap<String,String> mTransportNames
             = new ArrayMap<String,String>();             // component name -> registration name
@@ -1070,11 +1074,15 @@ public class BackupManagerService {
 
         // Set up our transport options and initialize the default transport
         // TODO: Don't create transports that we don't need to?
-        mCurrentTransport = Settings.Secure.getString(context.getContentResolver(),
+        SystemConfig systemConfig = SystemConfig.getInstance();
+        mTransportWhitelist = systemConfig.getBackupTransportWhitelist();
+
+        String transport = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.BACKUP_TRANSPORT);
-        if ("".equals(mCurrentTransport)) {
-            mCurrentTransport = null;
+        if (TextUtils.isEmpty(transport)) {
+           transport = null;
         }
+        mCurrentTransport = transport;
         if (DEBUG) Slog.v(TAG, "Starting with transport " + mCurrentTransport);
 
         // Find all transport hosts and bind to their services
@@ -1085,11 +1093,11 @@ public class BackupManagerService {
         }
         if (hosts != null) {
             for (int i = 0; i < hosts.size(); i++) {
-                final ServiceInfo transport = hosts.get(i).serviceInfo;
+                final ServiceInfo transportService = hosts.get(i).serviceInfo;
                 if (MORE_DEBUG) {
-                    Slog.v(TAG, "   " + transport.packageName + "/" + transport.name);
+                    Slog.v(TAG, "   " + transportService.packageName + "/" + transportService.name);
                 }
-                tryBindTransport(transport);
+                tryBindTransport(transportService);
             }
         }
 
@@ -1879,6 +1887,10 @@ public class BackupManagerService {
     // Actually bind; presumes that we have already validated the transport service
     boolean bindTransport(ServiceInfo transport) {
         ComponentName svcName = new ComponentName(transport.packageName, transport.name);
+        if (!mTransportWhitelist.contains(svcName)) {
+            Slog.w(TAG, "Proposed transport " + svcName + " not whitelisted; ignoring");
+            return false;
+        }
         if (DEBUG) {
             Slog.i(TAG, "Binding to transport host " + svcName);
         }
@@ -9293,6 +9305,11 @@ if (MORE_DEBUG) Slog.v(TAG, "   + got " + nRead + "; now wanting " + (size - soF
             pw.println("Last backup pass started: " + mLastBackupPass
                     + " (now = " + System.currentTimeMillis() + ')');
             pw.println("  next scheduled: " + mNextBackupPass);
+            pw.println("Transport whitelist:");
+            for (ComponentName transport : mTransportWhitelist) {
+                pw.print("    ");
+                pw.println(transport.flattenToShortString());
+            }
 
             pw.println("Available transports:");
             final String[] transports = listAllTransports();

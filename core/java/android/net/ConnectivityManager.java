@@ -949,7 +949,7 @@ public class ConnectivityManager {
      * - Renaming it to guessRestrictedCapability and make it set the
      *   restricted capability bit in addition to clearing it.
      * @hide
-     */
+     
     public static void maybeMarkCapabilitiesRestricted(NetworkCapabilities nc) {
         for (int capability : nc.getCapabilities()) {
             switch (capability) {
@@ -973,7 +973,7 @@ public class ConnectivityManager {
         // Conclude that this network is restricted.
         nc.removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
     }
-
+    */
     private NetworkCapabilities networkCapabilitiesForFeature(int networkType, String feature) {
         if (networkType == TYPE_MOBILE) {
             int cap = -1;
@@ -996,14 +996,14 @@ public class ConnectivityManager {
             }
             NetworkCapabilities netCap = new NetworkCapabilities();
             netCap.addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR).addCapability(cap);
-            maybeMarkCapabilitiesRestricted(netCap);
+            netCap.maybeMarkCapabilitiesRestricted();
             return netCap;
         } else if (networkType == TYPE_WIFI) {
             if ("p2p".equals(feature)) {
                 NetworkCapabilities netCap = new NetworkCapabilities();
                 netCap.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
                 netCap.addCapability(NetworkCapabilities.NET_CAPABILITY_WIFI_P2P);
-                maybeMarkCapabilitiesRestricted(netCap);
+                netCap.maybeMarkCapabilitiesRestricted();
                 return netCap;
             }
         }

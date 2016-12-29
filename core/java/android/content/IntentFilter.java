@@ -699,7 +699,14 @@ public class IntentFilter implements Parcelable {
             }
             return true;
         }
-
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof AuthorityEntry) {
+                final AuthorityEntry other = (AuthorityEntry)obj;
+                return match(other);
+            }
+            return false;
+        }
         /**
          * Determine whether this AuthorityEntry matches the given data Uri.
          * <em>Note that this comparison is case-sensitive, unlike formal
@@ -734,7 +741,7 @@ public class IntentFilter implements Parcelable {
             }
             return MATCH_CATEGORY_HOST;
         }
-    };
+    }
 
     /**
      * Add a new Intent data "scheme specific part" to match against.  The filter must

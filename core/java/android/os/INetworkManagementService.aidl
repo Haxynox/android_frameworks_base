@@ -373,7 +373,7 @@ interface INetworkManagementService
     /**
      * Setup a new physical network.
      */
-    void createPhysicalNetwork(int netId);
+    void createPhysicalNetwork(int netId, String permission);
 
     /**
      * Setup a new VPN.
@@ -399,7 +399,7 @@ interface INetworkManagementService
 
     void setDefaultNetId(int netId);
     void clearDefaultNetId();
-
+    void setNetworkPermission(int netId, String permission);
     void setPermission(String permission, in int[] uids);
     void clearPermission(in int[] uids);
 

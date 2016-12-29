@@ -17,12 +17,13 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Intent;
-
+import android.app.PendingIntent;
 /**
  * An interface to start activities. This is used to as a callback from the views to
  * {@link PhoneStatusBar} to allow custom handling for starting the activity, i.e. dismissing the
  * Keyguard.
  */
 public interface ActivityStarter {
+    void startPendingIntentDismissingKeyguard(PendingIntent intent);
     public void startActivity(Intent intent, boolean dismissShade);
 }

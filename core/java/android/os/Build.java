@@ -155,7 +155,8 @@ public class Build {
          * The user-visible version string.  E.g., "1.0" or "3.4b5".
          */
         public static final String RELEASE = getString("ro.build.version.release");
-
+        public static final String BASE_OS = SystemProperties.get("ro.build.version.base_os", "");
+        public static final String SECURITY_PATCH = SystemProperties.get("ro.build.version.security_patch", "");
         /**
          * The user-visible SDK version of the framework in its raw String
          * representation; use {@link #SDK_INT} instead.

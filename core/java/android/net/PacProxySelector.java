@@ -32,6 +32,7 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.List;
+import java.net.URISyntaxException;
 
 /**
  * @hide
@@ -68,7 +69,12 @@ public class PacProxySelector extends ProxySelector {
         String response = null;
         String urlString;
         try {
+            if (!"http".equalsIgnoreCase(uri.getScheme())) {
+                uri = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), "/", null, null);
+            }
             urlString = uri.toURL().toString();
+        } catch (URISyntaxException e) {
+            urlString = uri.getHost(); 
         } catch (MalformedURLException e) {
             urlString = uri.getHost();
         }

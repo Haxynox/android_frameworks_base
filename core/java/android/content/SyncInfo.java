@@ -24,6 +24,7 @@ import android.os.Parcelable;
  * Information about the sync operation that is currently underway.
  */
 public class SyncInfo implements Parcelable {
+    private static final Account REDACTED_ACCOUNT = new Account("*****", "*****");
     /** @hide */
     public final int authorityId;
 
@@ -43,7 +44,10 @@ public class SyncInfo implements Parcelable {
      * See {@link android.os.SystemClock#elapsedRealtime()}.
      */
     public final long startTime;
-
+    public static SyncInfo createAccountRedacted(
+        int authorityId, String authority, long startTime) {
+            return new SyncInfo(authorityId, REDACTED_ACCOUNT, authority, startTime);
+    }
     /** @hide */
     public SyncInfo(int authorityId, Account account, String authority, long startTime) {
         this.authorityId = authorityId;

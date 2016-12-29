@@ -119,6 +119,7 @@ public class NetworkManagementService extends INetworkManagementService.Stub
      * {@link INetworkManagementEventObserver#limitReached(String, String)}.
      */
     public static final String LIMIT_GLOBAL_ALERT = "globalAlert";
+    public static final String PERMISSION_SYSTEM = "SYSTEM";
 
     class NetdResponseCode {
         /* Keep in sync with system/netd/server/ResponseCode.h */
@@ -1977,11 +1978,15 @@ public class NetworkManagementService extends INetworkManagementService.Stub
     }
 
     @Override
-    public void createPhysicalNetwork(int netId) {
+    public void createPhysicalNetwork(int netId, String permission) {
         mContext.enforceCallingOrSelfPermission(CONNECTIVITY_INTERNAL, TAG);
 
         try {
-            mConnector.execute("network", "create", netId);
+            if (permission != null) {
+                mConnector.execute("network", "create", netId, permission);
+            } else {
+                mConnector.execute("network", "create", netId);
+            }
         } catch (NativeDaemonConnectorException e) {
             throw e.rethrowAsParcelableException();
         }
@@ -2071,6 +2076,22 @@ public class NetworkManagementService extends INetworkManagementService.Stub
             throw e.rethrowAsParcelableException();
         }
     }
+
+    @Override
+    public void setNetworkPermission(int netId, String permission) {
+        mContext.enforceCallingOrSelfPermission(CONNECTIVITY_INTERNAL, TAG);
+
+        try {
+            if (permission != null) {
+                mConnector.execute("network", "permission", "network", "set", permission, netId);
+            } else {
+                mConnector.execute("network", "permission", "network", "clear", netId);
+            }
+        } catch (NativeDaemonConnectorException e) {
+            throw e.rethrowAsParcelableException();
+        }
+    }
+
 
     @Override
     public void setPermission(String permission, int[] uids) {

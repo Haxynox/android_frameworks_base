@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.ContentObserver;
